@@ -12,6 +12,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlencode
 
 
 HTML = r"""<!doctype html>
@@ -46,6 +47,10 @@ td:first-child { color:var(--muted); width:45px; }
 .ERROR { color:var(--red); }.ERROR:before { background:var(--red); }
 .DONE { color:var(--blue); }.DONE:before { background:var(--blue); }
 .queue { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; color:#b6d7ff; }
+.queue-link { display:flex; align-items:center; gap:8px; }
+.queue-link a { color:var(--blue); max-width:460px; overflow:hidden; text-overflow:ellipsis; }
+.copy-link { border:1px solid var(--line); border-radius:6px; background:#21262d; color:var(--text); cursor:pointer; padding:5px 8px; }
+.copy-link:hover { border-color:var(--blue); }
 .muted { color:var(--muted); }
 @media (max-width:700px) { main { padding:16px; } header { align-items:start; flex-direction:column; }.clock { text-align:left; }.summary { grid-template-columns:repeat(2,1fr); } }
 </style>
@@ -59,7 +64,7 @@ td:first-child { color:var(--muted); width:45px; }
 <div class="card"><div class="label">Listos</div><div class="value" id="done">-</div></div>
 <div class="card"><div class="label">Errores</div><div class="value" id="errors">-</div></div>
 </section>
-<div class="table-wrap"><table><thead><tr><th>#</th><th>Estado</th><th>Queue ID</th><th>Faltan</th><th>Hora estimada</th><th>Forecast</th><th>Actualizado</th><th>Detalle</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>#</th><th>Estado</th><th>Queue ID</th><th>Link</th><th>Faltan</th><th>Hora estimada</th><th>Forecast</th><th>Actualizado</th><th>Detalle</th></tr></thead><tbody id="rows"></tbody></table></div>
 </main>
 <script>
 const esc = value => String(value ?? "-").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -72,7 +77,22 @@ async function update() {
     active.textContent = (counts.RUNNING || 0) + (counts.WAITING || 0) + (counts.STARTING || 0);
     done.textContent = counts.DONE || 0;
     errors.textContent = counts.ERROR || 0;
-    rows.innerHTML = data.map(item => `<tr><td>${item.index}</td><td><span class="status ${esc(item.state)}">${esc(item.state)}</span></td><td class="queue">${esc(item.queue_id)}</td><td>${esc(item.remaining)}</td><td>${esc(item.estimated)}</td><td>${esc(item.forecast)}</td><td class="muted">${esc(item.updated)}</td><td>${esc(item.message)}</td></tr>`).join("");
+    rows.innerHTML = data.map(item => {
+      const link = esc(item.queue_link);
+      const linkCell = item.queue_link
+        ? `<div class="queue-link"><a href="${link}" target="_blank" rel="noopener">${link}</a><button class="copy-link" data-link="${link}" type="button">Copiar</button></div>`
+        : "-";
+      return `<tr><td>${item.index}</td><td><span class="status ${esc(item.state)}">${esc(item.state)}</span></td><td class="queue">${esc(item.queue_id)}</td><td>${linkCell}</td><td>${esc(item.remaining)}</td><td>${esc(item.estimated)}</td><td>${esc(item.forecast)}</td><td class="muted">${esc(item.updated)}</td><td>${esc(item.message)}</td></tr>`;
+    }).join("");
+    document.querySelectorAll(".copy-link").forEach(button => button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.link);
+        button.textContent = "Copiado";
+      } catch (error) {
+        button.textContent = "No se pudo copiar";
+      }
+      setTimeout(() => { button.textContent = "Copiar"; }, 1500);
+    }));
     clock.textContent = `Actualizado ${new Date().toLocaleTimeString()}`;
   } catch (error) { clock.textContent = "Esperando al servidor..."; }
 }
@@ -87,6 +107,9 @@ class Dashboard:
         self.script_dir = script_dir
         self.count = count
         self.launch_delay = launch_delay
+        self.queue_host = os.getenv("QUEUE_HOST", "https://bocajuniors.queue-it.net").rstrip("/")
+        self.customer = os.getenv("QUEUE_CUSTOMER", "bocajuniors")
+        self.event_id = os.getenv("QUEUE_EVENT", "e20261101adh")
         self.work_dir = Path(tempfile.mkdtemp(prefix="monitor-cola-"))
         self.processes: list[subprocess.Popen[bytes]] = []
 
@@ -116,8 +139,16 @@ class Dashboard:
             except FileNotFoundError:
                 pass
             values += ["-"] * (7 - len(values))
+            queue_id = values[1]
+            queue_link = ""
+            if queue_id not in ("", "-"):
+                queue_link = (
+                    f"{self.queue_host}/?"
+                    f"{urlencode({'c': self.customer, 'e': self.event_id, 'cid': 'es-CL', 'q': queue_id})}"
+                )
             result.append({
-                "index": index, "state": values[0], "queue_id": values[1],
+                "index": index, "state": values[0], "queue_id": queue_id,
+                "queue_link": queue_link,
                 "remaining": values[2], "estimated": values[3], "forecast": values[4],
                 "updated": values[5], "message": values[6],
             })

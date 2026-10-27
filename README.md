@@ -70,3 +70,10 @@ QUEUE_EVENT=otro_evento MONITOR_COUNT=20 ./monitor-cola-web.sh
 El `QUEUE_EVENT` debe ser el identificador real de la campaña de Queue-it.
 Puede obtenerse observando las peticiones de red del sitio cuando se publique
 o active la fila.
+
+El tablero incluye una columna **Link** para cada `queueId`. El enlace se
+genera con el formato de Queue-it y el botón **Copiar** permite copiarlo:
+
+```text
+https://bocajuniors.queue-it.net/?c=bocajuniors&e=QUEUE_EVENT&cid=es-CL&q=QUEUEID
+```
