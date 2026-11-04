@@ -109,7 +109,7 @@ class Dashboard:
         self.launch_delay = launch_delay
         self.queue_host = os.getenv("QUEUE_HOST", "https://bocajuniors.queue-it.net").rstrip("/")
         self.customer = os.getenv("QUEUE_CUSTOMER", "bocajuniors")
-        self.event_id = os.getenv("QUEUE_EVENT", "e20261101adh")
+        self.event_id = os.getenv("QUEUE_EVENT", "e20261107adh")
         self.work_dir = Path(tempfile.mkdtemp(prefix="monitor-cola-"))
         self.processes: list[subprocess.Popen[bytes]] = []
 

@@ -53,7 +53,7 @@ Se pueden sobrescribir los valores predeterminados con variables de entorno:
 | `BOCA_LOGIN_URL` | `https://bocasocios.bocajuniors.com.ar/auth/login` | Página inicial |
 | `QUEUE_HOST` | `https://bocajuniors.queue-it.net` | Servidor de Queue-it |
 | `QUEUE_CUSTOMER` | `bocajuniors` | Cliente de Queue-it |
-| `QUEUE_EVENT` | `e20261101adh` | Evento de la fila |
+| `QUEUE_EVENT` | `e20261107adh` | Evento de la fila |
 | `QUEUE_LABEL` | `Boca Socios` | Etiqueta enviada a Queue-it |
 | `QUEUE_TARGET` | `https://bocasocios-gw.bocajuniors.com.ar/queueit/redirect` | URL de retorno |
 | `POLL_INTERVAL_MS` | El intervalo indicado por el servidor, normalmente 40000 ms | Intervalo mínimo entre consultas |

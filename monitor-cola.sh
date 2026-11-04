@@ -5,7 +5,7 @@ set -euo pipefail
 LOGIN_URL="${BOCA_LOGIN_URL:-https://bocasocios.bocajuniors.com.ar/auth/login}"
 QUEUE_HOST="${QUEUE_HOST:-https://bocajuniors.queue-it.net}"
 CUSTOMER="${QUEUE_CUSTOMER:-bocajuniors}"
-EVENT_ID="${QUEUE_EVENT:-e20261101adh}"
+EVENT_ID="${QUEUE_EVENT:-e20261107adh}"
 QUEUE_LABEL="${QUEUE_LABEL:-Boca Socios}"
 REDIRECT_TARGET="${QUEUE_TARGET:-https://bocasocios-gw.bocajuniors.com.ar/queueit/redirect}"
 DEFAULT_INTERVAL_MS="${POLL_INTERVAL_MS:-40000}"
